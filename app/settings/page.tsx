@@ -37,6 +37,14 @@ import {
   Palette,
 } from "lucide-react"
 
+declare global {
+  interface Window {
+    FlutterBridge?: {
+      postMessage: (message: string) => void;
+    }
+  }
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -51,8 +59,21 @@ export default function SettingsPage() {
   const [currencyDialogOpen, setCurrencyDialogOpen] = useState(false)
   const [languageDialogOpen, setLanguageDialogOpen] = useState(false)
   const [themeDialogOpen, setThemeDialogOpen] = useState(false)
-  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false)
+  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false) // Keeping this for backward compatibility or info if needed, but primary interaction is bridge
   const [selectedPermission, setSelectedPermission] = useState<string | null>(null)
+
+  // Permission statuses
+  const [permissionStatus, setPermissionStatus] = useState<{
+    camera: boolean;
+    photos: boolean;
+    contacts: boolean;
+    notifications: boolean;
+  }>({
+    camera: false,
+    photos: false,
+    contacts: false,
+    notifications: false
+  })
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
@@ -66,7 +87,7 @@ export default function SettingsPage() {
     })
 
     return () => {
-      try { unsubAuth() } catch {}
+      try { unsubAuth() } catch { }
     }
   }, [router])
 
@@ -76,12 +97,77 @@ export default function SettingsPage() {
     }
   }, [loading])
 
+  // --- Permission Bridge Logic ---
+
+  const requestNativePermission = (type: string) => {
+    if (window.FlutterBridge) {
+      window.FlutterBridge.postMessage(`PERMISSION_REQUEST:${type}`)
+    } else {
+      console.warn('FlutterBridge not active')
+      // Fallback for web dev or if bridge is missing: just log it
+      console.log(`[Dev] Requesting permission: ${type}`)
+    }
+  }
+
+  useEffect(() => {
+    const handlePermissionResult = (event: Event) => {
+      const customEvent = event as CustomEvent<{ permission: string, granted: boolean, permanentlyDenied: boolean }>;
+      const { permission, granted, permanentlyDenied } = customEvent.detail;
+      console.log(`Permission Result: ${permission} = ${granted}`);
+
+      // Map native permission names to our state keys if necessary
+      // Assuming native sends 'camera', 'photos', 'contacts', 'notifications'
+      let stateKey = permission;
+      if (permission === "photos") stateKey = "photos"; // normalize if needed
+
+      setPermissionStatus(prev => ({
+        ...prev,
+        [stateKey]: granted
+      }));
+
+      // Update context for notifications if granted
+      if (permission === 'notifications' && granted) {
+        setNotificationsEnabled(true);
+      } else if (permission === 'notifications' && !granted) {
+        setNotificationsEnabled(false);
+      }
+
+      if (permanentlyDenied) {
+        if (confirm(`${permission} access requires manual activation. Open Settings?`)) {
+          if (window.FlutterBridge) {
+            window.FlutterBridge.postMessage('OPEN_SETTINGS');
+          }
+        }
+      }
+    };
+
+    window.addEventListener('permission-result', handlePermissionResult);
+
+    return () => {
+      window.removeEventListener('permission-result', handlePermissionResult);
+    };
+  }, [setNotificationsEnabled]);
+
+
   const handleNotificationToggle = (checked: boolean) => {
-    setNotificationsEnabled(checked)
-    toast({
-      title: checked ? t("notificationsEnabled") : t("notificationsDisabled"),
-      description: checked ? t("willReceive") : t("wontReceive"),
-    })
+    // If checking, request permission via bridge
+    if (checked) {
+      requestNativePermission('notifications');
+      // We'll update state when the result comes back. 
+      // Optionally set it optimistically or wait. 
+      // For now, let's wait for the bridge result to keep truth in sync.
+      // But existing logic was sync, so let's keep the toast for feedback but maybe not commit state yet?
+      // Actually user requirement says: "Update your UI state here based on 'granted'" in the listener.
+      // So we should probably NOT setNotificationsEnabled here directly if we want to rely on the bridge.
+      // However, to keep UI responsive, we might want to toggle it, but if denied it toggles back.
+      // Let's rely on the listener to confirm. But we must trigger the request.
+    } else {
+      setNotificationsEnabled(false); // Can always disable locally
+      toast({
+        title: t("notificationsDisabled"),
+        description: t("wontReceive"),
+      })
+    }
   }
 
   const handleCurrencyChange = (value: string) => {
@@ -111,9 +197,10 @@ export default function SettingsPage() {
     })
   }
 
-  const handlePermissionClick = (permission: string) => {
-    setSelectedPermission(permission)
-    setPermissionDialogOpen(true)
+  // Modified to use bridge
+  const handlePermissionClick = (permissionName: string, permissionKey: string) => {
+    // permissionName is localized display name, permissionKey is the technical key for bridge
+    requestNativePermission(permissionKey);
   }
 
   const handleInviteFriends = () => {
@@ -188,23 +275,26 @@ export default function SettingsPage() {
         {
           icon: Camera,
           title: t("camera"),
-          subtitle: t("allowed"),
-          onClick: () => handlePermissionClick(t("camera")),
+          subtitle: permissionStatus.camera ? t("allowed") : t("denied"), // Use state
+          onClick: () => handlePermissionClick(t("camera"), 'camera'), // 'camera' key for bridge
           type: "navigation" as const,
+          dataPermission: "camera"
         },
         {
           icon: ImageIcon,
           title: t("photosMedia"),
-          subtitle: t("allowed"),
-          onClick: () => handlePermissionClick(t("photosMedia")),
+          subtitle: permissionStatus.photos ? t("allowed") : t("denied"), // Use state
+          onClick: () => handlePermissionClick(t("photosMedia"), 'photos'),
           type: "navigation" as const,
+          dataPermission: "photos"
         },
         {
           icon: Users,
           title: t("contacts"),
-          subtitle: t("denied"),
-          onClick: () => handlePermissionClick(t("contacts")),
+          subtitle: permissionStatus.contacts ? t("allowed") : t("denied"), // Use state
+          onClick: () => handlePermissionClick(t("contacts"), 'contacts'),
           type: "navigation" as const,
+          dataPermission: "contacts"
         },
         {
           icon: Bell,
@@ -213,6 +303,7 @@ export default function SettingsPage() {
           checked: settings.notificationsEnabled,
           onCheckedChange: handleNotificationToggle,
           type: "toggle" as const,
+          dataPermission: "notifications"
         },
       ],
     },
@@ -323,6 +414,8 @@ export default function SettingsPage() {
                     key={index}
                     onClick={item.type !== "toggle" ? item.onClick : undefined}
                     className={`w-full flex items-center gap-3 p-3 sm:p-4 hover:bg-accent transition-colors text-left ${item.type !== "toggle" ? "cursor-pointer" : ""}`}
+                    // Add data attribute for easier targeting/testing or if native code needs to find it
+                    data-permission={(item as any).dataPermission}
                   >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                       <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -334,7 +427,13 @@ export default function SettingsPage() {
                       )}
                     </div>
                     {item.type === "toggle" ? (
-                      <Switch checked={item.checked} onCheckedChange={item.onCheckedChange} aria-label={item.title} onClick={(e) => e.stopPropagation()} />
+                      <Switch
+                        checked={item.checked}
+                        onCheckedChange={item.onCheckedChange}
+                        aria-label={item.title}
+                        onClick={(e) => e.stopPropagation()}
+                        data-permission="notifications"
+                      />
                     ) : (
                       <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
                     )}
@@ -440,7 +539,7 @@ export default function SettingsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Permission Dialog */}
+      {/* Permission Dialog - Optional to keep or remove, keeping for now if user wants to see it, but functionality is moved to bridge */}
       <Dialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen}>
         <DialogContent>
           <DialogHeader>
