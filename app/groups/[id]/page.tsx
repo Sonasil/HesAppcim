@@ -1071,12 +1071,12 @@ export default function GroupDetailPage() {
           <div className="flex flex-wrap gap-2">
             <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="flex-1 sm:flex-none bg-transparent">
+                <Button size="sm" variant="outline" className="flex-shrink-0 bg-transparent">
                   <BarChart3 className="mr-1 h-4 w-4 sm:h-5 sm:w-5" />
                   {t("status")}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-md sm:w-full">
+              <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
                 <DialogHeader className="pb-2">
                   <DialogTitle className="text-xl sm:text-2xl font-bold">{t("groupBalance")}</DialogTitle>
                 </DialogHeader>
@@ -1330,12 +1330,12 @@ export default function GroupDetailPage() {
 
             <Dialog open={memberDialogOpen} onOpenChange={setMemberDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="flex-1 sm:flex-none bg-transparent">
+                <Button size="sm" variant="outline" className="flex-shrink-0 bg-transparent">
                   <Users className="mr-1 h-4 w-4 sm:h-5 sm:w-5" />
                   {t("members")}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
                 <DialogHeader>
                   <DialogTitle>{t("groupMembers")}</DialogTitle>
                 </DialogHeader>
@@ -1588,7 +1588,7 @@ export default function GroupDetailPage() {
                   <Plus className="h-5 w-5" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
                 <DialogHeader>
                   <DialogTitle>{t("addExpense")}</DialogTitle>
                 </DialogHeader>
@@ -1835,7 +1835,7 @@ export default function GroupDetailPage() {
       </div>
 
       <Dialog open={expenseDetailOpen} onOpenChange={setExpenseDetailOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-md sm:w-full">
+        <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle className="text-xl sm:text-2xl font-semibold">{t("expenseDetails")}</DialogTitle>
           </DialogHeader>
@@ -2112,7 +2112,7 @@ export default function GroupDetailPage() {
 
       {/* ✅ Edit Expense Dialog */}
       <Dialog open={editExpenseOpen} onOpenChange={setEditExpenseOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Edit Expense</DialogTitle>
           </DialogHeader>
