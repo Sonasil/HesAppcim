@@ -346,7 +346,7 @@ export default function GroupDetailPage() {
       let customTotal = 0
       for (const uid of participantIds) {
         const customAmount = Number.parseFloat(customSplitAmounts[uid] || "0")
-        if (customAmount <= 0) {
+        if (isNaN(customAmount) || customAmount < 0) {
           toast({
             title: "Invalid split amount",
             description: `Please enter a valid amount for ${getUserName(uid)}`,
@@ -1068,10 +1068,11 @@ export default function GroupDetailPage() {
 
           </div>
 
-          <div className="flex flex-wrap gap-2">
+
+          <div className="grid grid-cols-2 gap-2">
             <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="flex-shrink-0 bg-transparent">
+                <Button size="sm" variant="outline" className="w-full bg-transparent">
                   <BarChart3 className="mr-1 h-4 w-4 sm:h-5 sm:w-5" />
                   {t("status")}
                 </Button>
@@ -1330,7 +1331,7 @@ export default function GroupDetailPage() {
 
             <Dialog open={memberDialogOpen} onOpenChange={setMemberDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="flex-shrink-0 bg-transparent">
+                <Button size="sm" variant="outline" className="w-full bg-transparent">
                   <Users className="mr-1 h-4 w-4 sm:h-5 sm:w-5" />
                   {t("members")}
                 </Button>
@@ -2028,6 +2029,9 @@ export default function GroupDetailPage() {
       {/* Receipt Viewer - Full Screen Mobile-Friendly */}
       <Dialog open={receiptViewerOpen} onOpenChange={setReceiptViewerOpen}>
         <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
           <div className="relative w-full h-full flex items-center justify-center">
             {selectedExpense?.receiptUrl && (
               <>
