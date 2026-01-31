@@ -267,6 +267,7 @@ const translations: Record<string, Record<string, string>> = {
     invalidCode: "Invalid code",
     inviteMissingGroup: "Invite is missing group information",
     groupNotFound: "Group not found",
+    maxAmountExceeded: "Maximum amount is 50,000",
 
     // Groups Page (Tabs & Headers)
     myGroups: "My Groups",
@@ -605,6 +606,7 @@ const translations: Record<string, Record<string, string>> = {
     inviteMissingGroup: "Davet grup bilgisi içermiyor",
     groupNotFound: "Grup bulunamadı",
     goBack: "Geri Dön",
+    maxAmountExceeded: "Maksimum tutar 50.000",
 
     settlementRecorded: "Ödeme kaydedildi",
     memberJoined: "Üye katıldı",

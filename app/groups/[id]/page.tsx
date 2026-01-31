@@ -77,6 +77,7 @@ import {
   Camera,
   ZoomIn,
   X,
+  AlertCircle,
 } from "lucide-react"
 
 type GroupDoc = {
@@ -142,6 +143,9 @@ export default function GroupDetailPage() {
     { value: "Other", label: t("other"), icon: Tag },
     { value: "Custom", label: t("custom"), icon: Tag },
   ], [t])
+
+  const MAX_AMOUNT = 50000
+
 
   const formatTimeAgo = (date: Date) => {
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
@@ -1090,7 +1094,7 @@ export default function GroupDetailPage() {
                         }`} />
                     </div>
                     <div className="flex-1 min-w-0 pl-1 sm:pl-2">
-                      <p className={`text-2xl sm:text-3xl md:text-4xl font-bold leading-none mb-1.5 ${myBalance >= 0 ? "text-green-600 dark:text-green-400 dark:[text-shadow:0_0_12px_rgba(34,197,94,0.3)]" : "text-red-600 dark:text-red-400 dark:[text-shadow:0_0_12px_rgba(239,68,68,0.3)]"}`}>
+                      <p className={`text-2xl sm:text-3xl md:text-4xl font-bold leading-none mb-1.5 truncate ${myBalance >= 0 ? "text-green-600 dark:text-green-400 dark:[text-shadow:0_0_12px_rgba(34,197,94,0.3)]" : "text-red-600 dark:text-red-400 dark:[text-shadow:0_0_12px_rgba(239,68,68,0.3)]"}`}>
                         {formatMoney(myBalance)}
                       </p>
                       <p className="text-sm sm:text-base text-muted-foreground font-medium">
@@ -1162,8 +1166,8 @@ export default function GroupDetailPage() {
                             </div>
 
                             {/* Right: Amount */}
-                            <div className="flex-shrink-0">
-                              <p className={`text-xl sm:text-2xl font-bold ${debt.to === currentUid
+                            <div className="flex-shrink-0 min-w-0 max-w-[140px]">
+                              <p className={`text-xl sm:text-2xl font-bold truncate ${debt.to === currentUid
                                 ? "text-green-600 dark:text-green-400 dark:[text-shadow:0_0_8px_rgba(34,197,94,0.25)]"
                                 : "text-red-600 dark:text-red-400 dark:[text-shadow:0_0_8px_rgba(239,68,68,0.25)]"
                                 }`}>
@@ -1244,7 +1248,7 @@ export default function GroupDetailPage() {
                                 <div className="text-xs font-medium mb-0.5 opacity-90">
                                   {t("full")}
                                 </div>
-                                <div className="text-base font-bold">
+                                <div className="text-base font-bold truncate">
                                   {formatMoney(debtAmount)}
                                 </div>
                               </Button>
@@ -1278,9 +1282,15 @@ export default function GroupDetailPage() {
                                 value={paymentAmount}
                                 onChange={(e) => setPaymentAmount(e.target.value)}
                                 disabled={recordingPayment}
-                                className="h-10 text-base"
+                                className={`h-10 text-base ${paymentAmount && parseFloat(paymentAmount) > MAX_AMOUNT ? "border-red-500 focus-visible:border-red-500" : ""}`}
                                 autoFocus
                               />
+                              {paymentAmount && parseFloat(paymentAmount) > MAX_AMOUNT && (
+                                <p className="text-xs text-red-600 dark:text-red-400 mt-1.5 flex items-center gap-1">
+                                  <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                                  <span>{t("maxAmountExceeded")}</span>
+                                </p>
+                              )}
                             </div>
                           )}
 
@@ -1291,6 +1301,7 @@ export default function GroupDetailPage() {
                               !paymentMember ||
                               !paymentAmount ||
                               Number(paymentAmount) <= 0 ||
+                              Number(paymentAmount) > MAX_AMOUNT ||
                               recordingPayment
                             }
                             className="w-full h-10 text-sm font-semibold"
@@ -1600,7 +1611,14 @@ export default function GroupDetailPage() {
                       placeholder="150.00"
                       value={expenseAmount}
                       onChange={(e) => setExpenseAmount(e.target.value)}
+                      className={expenseAmount && parseFloat(expenseAmount) > MAX_AMOUNT ? "border-red-500 focus-visible:border-red-500" : ""}
                     />
+                    {expenseAmount && parseFloat(expenseAmount) > MAX_AMOUNT && (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1.5 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                        <span>{t("maxAmountExceeded")}</span>
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="expense-category">{t("category")}</Label>
@@ -1718,24 +1736,32 @@ export default function GroupDetailPage() {
                             Enter custom amounts for each person (must sum to total)
                           </p>
                           {selectedParticipants.map((uid) => (
-                            <div key={uid} className="flex items-center gap-2">
-                              <Label className="flex-1 text-sm">{getUserName(uid)}</Label>
-                              <div className="flex items-center gap-1">
-                                <span className="text-sm text-muted-foreground">{settings.currency}</span>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="0.00"
-                                  value={customSplitAmounts[uid] || ""}
-                                  onChange={(e) => {
-                                    setCustomSplitAmounts((prev) => ({
-                                      ...prev,
-                                      [uid]: e.target.value,
-                                    }))
-                                  }}
-                                  className="w-28"
-                                />
+                            <div key={uid} className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Label className="flex-1 text-sm">{getUserName(uid)}</Label>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-sm text-muted-foreground">{settings.currency}</span>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={customSplitAmounts[uid] || ""}
+                                    onChange={(e) => {
+                                      setCustomSplitAmounts((prev) => ({
+                                        ...prev,
+                                        [uid]: e.target.value,
+                                      }))
+                                    }}
+                                    className={`w-28 ${customSplitAmounts[uid] && parseFloat(customSplitAmounts[uid]) > MAX_AMOUNT ? "border-red-500 focus-visible:border-red-500" : ""}`}
+                                  />
+                                </div>
                               </div>
+                              {customSplitAmounts[uid] && parseFloat(customSplitAmounts[uid]) > MAX_AMOUNT && (
+                                <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 ml-auto w-fit">
+                                  <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                                  <span>{t("maxAmountExceeded")}</span>
+                                </p>
+                              )}
                             </div>
                           ))}
                           {expenseAmount && (
@@ -1768,7 +1794,17 @@ export default function GroupDetailPage() {
                     disabled={addingExpense}
                   />
 
-                  <Button onClick={handleAddExpense} className="w-full" disabled={addingExpense}>
+                  <Button
+                    onClick={handleAddExpense}
+                    disabled={
+                      !expenseTitle.trim() ||
+                      !expenseAmount ||
+                      parseFloat(expenseAmount) <= 0 ||
+                      parseFloat(expenseAmount) > MAX_AMOUNT ||
+                      addingExpense
+                    }
+                    className="w-full"
+                  >
                     {addingExpense ? t("adding") : t("addExpense")}
                   </Button>
                 </div>

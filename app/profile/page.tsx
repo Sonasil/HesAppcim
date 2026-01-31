@@ -280,7 +280,7 @@ export default function ProfilePage() {
                 </div>
                 <p className="text-xs text-muted-foreground">{t("totalSpent")}</p>
               </div>
-              <p className="text-base sm:text-lg font-bold">{formatMoney(totalSpent)}</p>
+              <p className="text-base sm:text-lg font-bold truncate">{formatMoney(totalSpent)}</p>
             </Card>
 
             <Card className="p-3 sm:p-4 bg-card/95 backdrop-blur">
@@ -295,7 +295,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-muted-foreground">{t("balance")}</p>
               </div>
               <p
-                className={`text-base sm:text-lg font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}
+                className={`text-base sm:text-lg font-bold truncate ${balance >= 0 ? "text-green-600" : "text-red-600"}`}
               >
                 {formatMoney(balance)}
               </p>
