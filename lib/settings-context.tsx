@@ -53,7 +53,7 @@ const translations: Record<string, Record<string, string>> = {
     selectCurrency: "Select Currency",
     selectLanguage: "Select Language",
     selectTheme: "Select Theme",
-    
+
     // Groups List
     groupsTitle: "Groups",
     createNewGroup: "Create New Group",
@@ -74,7 +74,7 @@ const translations: Record<string, Record<string, string>> = {
     invalidInput: "Invalid input",
     enterGroupNameError: "Please enter a group name",
     enterInviteCodeError: "Please enter an invite code",
-    
+
     // Dialogs
     creating: "Creating...",
     joining: "Joining...",
@@ -84,7 +84,7 @@ const translations: Record<string, Record<string, string>> = {
     inviteMissingInfo: "Invite is missing group information",
     couldNotJoin: "Could not join the group",
     couldNotCreate: "Could not create the group",
-    
+
     // Status Dialog
     groupBalance: "Group Balance",
     netBalance: "Net Balance",
@@ -96,7 +96,7 @@ const translations: Record<string, Record<string, string>> = {
     owes: "owes",
     you: "you",
     You: "You",
-    
+
     // Record Payment
     recordPayment: "Record Payment",
     trackPayments: "Track received payments",
@@ -109,7 +109,7 @@ const translations: Record<string, Record<string, string>> = {
     partial: "Partial",
     enterAmount: "Enter amount",
     recording: "Recording...",
-    
+
     // Expense Management
     addExpense: "Add Expense",
     description: "Description",
@@ -122,7 +122,7 @@ const translations: Record<string, Record<string, string>> = {
     saving: "Saving...",
     saveChanges: "Save Changes",
     expenseDetails: "Expense Details",
-    
+
     // Categories
     electricity: "Electricity",
     water: "Water",
@@ -133,7 +133,7 @@ const translations: Record<string, Record<string, string>> = {
     dining: "Dining",
     entertainment: "Entertainment",
     other: "Other",
-    
+
     // Group Page
     status: "Status",
     members: "Members",
@@ -146,7 +146,7 @@ const translations: Record<string, Record<string, string>> = {
     deleteExpense: "Delete Expense",
     paidBy: "Paid by",
     splitBetween: "Split between",
-    
+
     // Error/Success Messages
     error: "Error",
     success: "Success",
@@ -175,13 +175,13 @@ const translations: Record<string, Record<string, string>> = {
     leaveGroupLastMemberDesc: "You're the last member. Leaving will permanently delete this group.",
     useMenuToTransfer: "Use the ⋮ menu next to a member to transfer ownership.",
 
-    
+
     // Time
     justNow: "Just now",
     minutesAgo: "m ago",
     hoursAgo: "h ago",
     daysAgo: "d ago",
-    
+
     // Common
     cancel: "Cancel",
     close: "Close",
@@ -193,7 +193,7 @@ const translations: Record<string, Record<string, string>> = {
     signIn: "Sign In",
     signUp: "Sign Up",
     signOut: "Sign Out",
-    
+
     // Auth
     welcomeToKasa: "Welcome to HesAppcım",
     signInDesc: "Sign in to manage your shared expenses",
@@ -213,7 +213,10 @@ const translations: Record<string, Record<string, string>> = {
     createStrongPassword: "Create a strong password",
     googleSignInFailed: "Google sign-in failed. Please try again.",
     signInFailed: "Sign in failed. Please check your credentials.",
-    
+    failedToSendReset: "Failed to send reset email",
+    flutterBridgeNotActive: "FlutterBridge not active",
+    checkEmail: "Please check your email",
+
     // Password Strength
     passwordStrength: "Password strength:",
     weak: "Weak",
@@ -229,7 +232,7 @@ const translations: Record<string, Record<string, string>> = {
     emailRequired: "Email is required",
     passwordRequired: "Password is required",
     nameRequired: "Full name is required",
-    
+
     // Profile
     profileUpdated: "Profile updated",
     profileSaved: "Your profile has been saved.",
@@ -248,7 +251,7 @@ const translations: Record<string, Record<string, string>> = {
     hello: "Hello",
 
     expenseOverview: "Here's your expense overview",
-    
+
     // Toasts
     invalidSplitAmount: "Invalid split amount",
     splitMismatch: "Split amounts don't match",
@@ -264,7 +267,7 @@ const translations: Record<string, Record<string, string>> = {
     invalidCode: "Invalid code",
     inviteMissingGroup: "Invite is missing group information",
     groupNotFound: "Group not found",
-    
+
     // Groups Page (Tabs & Headers)
     myGroups: "My Groups",
     activeGroups: "active groups",
@@ -273,7 +276,7 @@ const translations: Record<string, Record<string, string>> = {
     unnamedGroup: "Unnamed group",
     noActiveGroups: "No active groups",
     createFirstGroup: "Create Your First Group",
-    noArchivedGroups: "No archived groups", 
+    noArchivedGroups: "No archived groups",
     createGroupDesc: "Create a group to start tracking expenses with friends and family.",
     loginRequired: "Login required",
     loginRequiredDesc: "Please sign in to join a group.",
@@ -286,7 +289,7 @@ const translations: Record<string, Record<string, string>> = {
     joinedTitle: "Joined!",
     joinedDesc: "You have joined the group.",
 
-    
+
     // Navigation
     navHome: "Home",
     navGroups: "Groups",
@@ -361,7 +364,6 @@ const translations: Record<string, Record<string, string>> = {
     failedToSend: "Failed to send message",
     failedToAdd: "Failed to add expense",
     verificationSent: "Verification email sent",
-    checkEmail: "Please check your email to verify your account",
     emailNotVerified: "Email not verified",
     resendVerification: "Resend verification email",
     forgotPassword: "Forgot Password?",
@@ -381,7 +383,7 @@ const translations: Record<string, Record<string, string>> = {
     deleteSuccess: "Group deleted",
     onlyOwnerDelete: "Only the group owner can delete this group.",
     unarchiveGroup: "Unarchive Group",
-    unarchiveSuccess: "Group unarchived", 
+    unarchiveSuccess: "Group unarchived",
     unarchiveConfirm: "Unarchive this group?",
     unarchiveConfirmDesc: "It will move back to the Active tab.",
 
@@ -405,7 +407,7 @@ const translations: Record<string, Record<string, string>> = {
     selectCurrency: "Para Birimi Seç",
     selectLanguage: "Dil Seç",
     selectTheme: "Tema Seç",
-    
+
     // Groups List
     groupsTitle: "Gruplar",
     createNewGroup: "Yeni Grup Oluştur",
@@ -426,7 +428,7 @@ const translations: Record<string, Record<string, string>> = {
     invalidInput: "Geçersiz giriş",
     enterGroupNameError: "Lütfen bir grup adı girin",
     enterInviteCodeError: "Lütfen bir davet kodu girin",
-    
+
     // Dialogs
     creating: "Oluşturuluyor...",
     joining: "Katılıyor...",
@@ -436,7 +438,7 @@ const translations: Record<string, Record<string, string>> = {
     inviteMissingInfo: "Davet grup bilgisi içermiyor",
     couldNotJoin: "Gruba katılınamadı",
     couldNotCreate: "Grup oluşturulamadı",
-    
+
     // Status Dialog
     groupBalance: "Grup Bakiyesi",
     netBalance: "Net Bakiye",
@@ -448,7 +450,7 @@ const translations: Record<string, Record<string, string>> = {
     owes: "borçlu",
     you: "sana",
     You: "Sen",
-    
+
     // Record Payment
     recordPayment: "Ödeme Kaydet",
     trackPayments: "Alınan ödemeleri kaydet",
@@ -461,7 +463,7 @@ const translations: Record<string, Record<string, string>> = {
     partial: "Kısmi",
     enterAmount: "Tutar gir",
     recording: "Kaydediliyor...",
-    
+
     // Expense Management
     addExpense: "Harcama Ekle",
     description: "Açıklama",
@@ -474,7 +476,7 @@ const translations: Record<string, Record<string, string>> = {
     saving: "Kaydediliyor...",
     saveChanges: "Değişiklikleri Kaydet",
     expenseDetails: "Harcama Detayları",
-    
+
     // Categories  
     electricity: "Elektrik",
     water: "Su",
@@ -485,7 +487,7 @@ const translations: Record<string, Record<string, string>> = {
     dining: "Yemek",
     entertainment: "Eğlence",
     other: "Diğer",
-    
+
     // Group Page
     status: "Durum",
     members: "Üyeler",
@@ -498,7 +500,7 @@ const translations: Record<string, Record<string, string>> = {
     deleteExpense: "Harcamayı Sil",
     paidBy: "Ödeyen",
     splitBetween: "Paylaşanlar",
-    
+
     // Error/Success Messages
     error: "Hata",
     success: "Başarılı",
@@ -510,13 +512,13 @@ const translations: Record<string, Record<string, string>> = {
     expenseUpdated: "Harcama başarıyla güncellendi",
     paymentMarked: "Ödeme işaretlendi",
     couldNotSave: "Ayarlar kaydedilemedi",
-    
+
     // Time
     justNow: "Şimdi",
     minutesAgo: "dk önce",
     hoursAgo: "sa önce",
     daysAgo: "gün önce",
-    
+
     // Common
     cancel: "İptal",
     close: "Kapat",
@@ -528,7 +530,7 @@ const translations: Record<string, Record<string, string>> = {
     signIn: "Giriş Yap",
     signUp: "Kayıt Ol",
     signOut: "Çıkış Yap",
-    
+
     // Auth
     welcomeToKasa: "HesAppcım'a Hoşgeldiniz",
     signInDesc: "Paylaşılan harcamalarınızı yönetmek için giriş yapın",
@@ -548,7 +550,10 @@ const translations: Record<string, Record<string, string>> = {
     createStrongPassword: "Güçlü bir şifre oluşturun",
     googleSignInFailed: "Google ile giriş başarısız. Lütfen tekrar deneyin.",
     signInFailed: "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.",
-    
+    failedToSendReset: "Şifre sıfırlama e-postası gönderilemedi",
+    flutterBridgeNotActive: "FlutterBridge aktif değil",
+    checkEmail: "Lütfen e-postanızı kontrol edin",
+
     // Password Strength
     passwordStrength: "Şifre gücü:",
     weak: "Zayıf",
@@ -564,7 +569,7 @@ const translations: Record<string, Record<string, string>> = {
     emailRequired: "E-posta gereklidir",
     passwordRequired: "Şifre gereklidir",
     nameRequired: "Ad soyad gereklidir",
-    
+
     // Profile
     profileUpdated: "Profil güncellendi",
     profileSaved: "Profiliniz kaydedildi.",
@@ -583,7 +588,7 @@ const translations: Record<string, Record<string, string>> = {
     hello: "Merhaba",
 
     expenseOverview: "Harcama özetiniz",
-    
+
     // Toasts
     invalidSplitAmount: "Geçersiz paylaşım tutarı",
     splitMismatch: "Paylaşım tutarları eşleşmiyor",
@@ -636,7 +641,7 @@ const translations: Record<string, Record<string, string>> = {
     genericErrorDesc: "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
     joinedTitle: "Katıldınız!",
     joinedDesc: "Gruba katıldınız.",
-    
+
     // Navigation
     navHome: "Ana Sayfa",
     navGroups: "Gruplar",
@@ -711,7 +716,6 @@ const translations: Record<string, Record<string, string>> = {
     failedToSend: "Mesaj gönderilemedi",
     failedToAdd: "Harcama eklenemedi",
     verificationSent: "Doğrulama e-postası gönderildi",
-    checkEmail: "Hesabınızı doğrulamak için lütfen e-postanızı kontrol edin",
     emailNotVerified: "E-posta doğrulanmadı",
     resendVerification: "Doğrulama e-postasını tekrar gönder",
     forgotPassword: "Şifremi Unuttum?",
@@ -791,7 +795,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         if (unsubUserRef.current) {
           try {
             unsubUserRef.current()
-          } catch {}
+          } catch { }
           unsubUserRef.current = null
         }
 
@@ -834,7 +838,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (unsubUserRef.current) {
         try {
           unsubUserRef.current()
-        } catch {}
+        } catch { }
       }
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current)

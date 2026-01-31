@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { logger } from "@/lib/logger"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -129,7 +130,7 @@ export default function GroupsPage() {
       setGroupName("")
       router.push(`/groups/${groupId}`)
     } catch (error) {
-      console.error("Failed to create group:", error)
+      logger.error("Failed to create group:", error)
       toast({
         title: t("genericErrorTitle"),
         description: t("genericErrorDesc"),
@@ -214,7 +215,7 @@ export default function GroupsPage() {
           createdByName: user.displayName || user.email || "Someone",
         })
       } catch (e) {
-        console.warn("Failed to write join activity:", e)
+        logger.warn("Failed to write join activity:", e)
       }
 
       toast({
@@ -226,7 +227,7 @@ export default function GroupsPage() {
       setJoinCode("")
       router.push(`/groups/${groupId}`)
     } catch (error: any) {
-      console.error("Failed to join group:", error)
+      logger.error("Failed to join group:", error)
       toast({
         title: t("genericErrorTitle"),
         description: t("genericErrorDesc"),
@@ -252,7 +253,7 @@ export default function GroupsPage() {
         description: group.name,
       })
     } catch (error) {
-      console.error("Failed to update group status:", error)
+      logger.error("Failed to update group status:", error)
       toast({
         title: t("genericErrorTitle"),
         description: t("failedToUpdate"),

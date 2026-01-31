@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore"
 import { db, auth } from "@/lib/firebase"
 import { useGroups } from "@/lib/groups-context"
+import { logger } from "@/lib/logger"
 
 import { useEffect, useState, useRef, useMemo, type FormEvent } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -304,7 +305,7 @@ export default function GroupDetailPage() {
 
       setMessageText("")
     } catch (err) {
-      console.error("Failed to send message:", err)
+      logger.error("Failed to send message:", err)
       toast({
         title: t("error"),
         description: "Failed to send message",
@@ -401,7 +402,7 @@ export default function GroupDetailPage() {
           const { uploadReceiptToCloudinary } = await import("@/components/ImageUpload")
           receiptUrl = await uploadReceiptToCloudinary(receiptFile)
         } catch (uploadError) {
-          console.error("Receipt upload failed:", uploadError)
+          logger.error("Receipt upload failed:", uploadError)
           toast({
             title: "⚠️ Fatura yüklenemedi",
             description: "Fatura yüklenirken hata oluştu, harcama faturasız kaydedilecek",
@@ -464,7 +465,7 @@ export default function GroupDetailPage() {
       setReceiptFile(null)
       setExpenseDialogOpen(false)
     } catch (err) {
-      console.error("Failed to add expense:", err)
+      logger.error("Failed to add expense:", err)
       toast({
         title: t("error"),
         description: "Failed to add expense. Please try again.",
@@ -507,7 +508,7 @@ export default function GroupDetailPage() {
         description: "Share this code with others to join the group",
       })
     } catch (err) {
-      console.error("Failed to generate invite code:", err)
+      logger.error("Failed to generate invite code:", err)
       toast({
         title: t("error"),
         description: "Failed to generate invite code. Please try again.",
@@ -562,7 +563,7 @@ export default function GroupDetailPage() {
         description: `${getUserName(uid)} has been removed from the group`,
       })
     } catch (e: any) {
-      console.error("Failed to remove member:", e)
+      logger.error("Failed to remove member:", e)
       toast({
         title: t("error"),
         description:
@@ -592,7 +593,7 @@ export default function GroupDetailPage() {
         description: `${getUserName(uid)} is now the group owner`,
       })
     } catch (error) {
-      console.error("Failed to transfer ownership:", error)
+      logger.error("Failed to transfer ownership:", error)
       toast({
         title: t("error"),
         description: "Failed to transfer ownership. Please try again.",
@@ -656,7 +657,7 @@ export default function GroupDetailPage() {
         return
       }
 
-      console.error(e)
+      logger.error(e)
       toast({
         title: t("error"),
         description: "Something went wrong while leaving the group.",
@@ -682,7 +683,7 @@ export default function GroupDetailPage() {
       setArchiveGroupDialog(false)
       router.push("/groups")
     } catch (error) {
-      console.error("Failed to archive group:", error)
+      logger.error("Failed to archive group:", error)
       toast({
         title: t("error"),
         description: "Failed to archive group",
@@ -716,7 +717,7 @@ export default function GroupDetailPage() {
       setDeleteGroupDialog(false)
       router.push("/groups")
     } catch (error) {
-      console.error("Failed to delete group:", error)
+      logger.error("Failed to delete group:", error)
       toast({
         title: t("error"),
         description: "Failed to delete group",
@@ -792,7 +793,7 @@ export default function GroupDetailPage() {
         description: `Balance updated. ${getUserName(userId)} ${isPaid ? "has paid" : "hasn't paid"} their share.`,
       })
     } catch (error) {
-      console.error("Failed to toggle payment:", error)
+      logger.error("Failed to toggle payment:", error)
       // Revert optimistic update on error
       setPaymentStatus((prev) => ({
         ...prev,
@@ -867,7 +868,7 @@ export default function GroupDetailPage() {
       setPaymentMember("")
       setPaymentAmount("")
     } catch (error) {
-      console.error("Failed to record payment:", error)
+      logger.error("Failed to record payment:", error)
       toast({
         title: t("error"),
         description: "Failed to record payment. Please try again.",
@@ -901,7 +902,7 @@ export default function GroupDetailPage() {
       setEditExpenseTitle("")
       setEditExpenseCategory("")
     } catch (error) {
-      console.error("Failed to update expense:", error)
+      logger.error("Failed to update expense:", error)
       toast({
         title: t("error"),
         description: t("failedToUpdate"),

@@ -12,10 +12,13 @@ import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRed
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useSettings } from "@/lib/settings-context"
 import { isMobileOrWebView, getEnvironmentInfo } from "@/lib/detect-mobile"
+import { logger } from "@/lib/logger"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const router = useRouter()
   const { t } = useSettings()
+  const { toast } = useToast()
   // Add auth listener to handle redirect result or existing session
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
@@ -28,22 +31,22 @@ export default function LoginPage() {
 
   // Handle redirect result (for mobile/WebView)
   useEffect(() => {
-    console.log('🔄 Checking for redirect result on mount...')
+    logger.log('🔄 Checking for redirect result on mount...')
 
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
-          console.log('✅ Redirect sign-in successful:', result.user.email)
+          logger.log('✅ Redirect sign-in successful:', result.user.email)
           // User signed in via redirect
           router.push("/")
         } else {
-          console.log('ℹ️ No redirect result found')
+          logger.log('ℹ️ No redirect result found')
         }
       })
       .catch((error) => {
-        console.error('❌ Redirect sign-in error:', error)
-        console.error('Error code:', error?.code)
-        console.error('Error message:', error?.message)
+        logger.error('❌ Redirect sign-in error:', error)
+        logger.error('Error code:', error?.code)
+        logger.error('Error message:', error?.message)
         setGoogleLoading(false)
         if (error?.code !== "auth/popup-closed-by-user" && error?.code !== "auth/cancelled-popup-request") {
           // Show explicit error message if possible
@@ -115,15 +118,15 @@ export default function LoginPage() {
   // Handle native Google Login result
   useEffect(() => {
     window.onNativeGoogleLoginResult = async (idToken: string) => {
-      console.log('📱 Received Native Google Login Token');
+      logger.log('📱 Received Native Google Login Token');
       setGoogleLoading(true);
       try {
         const credential = GoogleAuthProvider.credential(idToken);
         await signInWithCredential(auth, credential);
-        console.log('✅ Native sign-in successful');
+        logger.log('✅ Native sign-in successful');
         // Auth state listener will handle redirection
       } catch (error: any) {
-        console.error('❌ Native sign-in error:', error);
+        logger.error('❌ Native sign-in error:', error);
         setFormError(t("googleSignInFailed") + ` (${error?.message})`);
         setGoogleLoading(false);
       }
@@ -143,13 +146,13 @@ export default function LoginPage() {
     const isMobile = isMobileOrWebView()
     const envInfo = getEnvironmentInfo()
 
-    console.log('🔐 Starting Google Sign-In...')
-    console.log('🌍 Environment:', envInfo)
-    console.log('📱 Is Mobile/WebView:', isMobile)
+    logger.log('🔐 Starting Google Sign-In...')
+    logger.log('🌍 Environment:', envInfo)
+    logger.log('📱 Is Mobile/WebView:', isMobile)
 
     // Check for Flutter Bridge (Native Google Login)
     if (typeof window !== 'undefined' && window.FlutterBridge) {
-      console.log('🌉 Flutter Bridge detected! Requesting native login...');
+      logger.log('🌉 Flutter Bridge detected! Requesting native login...');
       window.FlutterBridge.postMessage("NATIVE_GOOGLE_LOGIN");
       // The process will continue in window.onNativeGoogleLoginResult
       return;
@@ -158,40 +161,40 @@ export default function LoginPage() {
     try {
       if (isMobile) {
         // Mobile/WebView: Use redirect flow directly
-        console.log('📱 Using signInWithRedirect for mobile/WebView')
+        logger.log('📱 Using signInWithRedirect for mobile/WebView')
         await signInWithRedirect(auth, googleProvider)
         // Redirect will happen, page will reload
         // getRedirectResult will handle the response on return
         return
       } else {
         // Desktop: Use popup flow
-        console.log('🖥️ Using signInWithPopup for desktop')
+        logger.log('🖥️ Using signInWithPopup for desktop')
         await signInWithPopup(auth, googleProvider)
-        console.log('✅ Popup sign-in successful')
+        logger.log('✅ Popup sign-in successful')
         // Auth state listener will handle redirection
       }
     } catch (err: any) {
-      console.error('❌ Google sign-in error:', err)
-      console.error('Error code:', err?.code)
-      console.error('Error message:', err?.message)
+      logger.error('❌ Google sign-in error:', err)
+      logger.error('Error code:', err?.code)
+      logger.error('Error message:', err?.message)
 
       const errorCode = err?.code
 
       // User cancelled the popup
       if (errorCode === "auth/popup-closed-by-user") {
-        console.log('ℹ️ User closed the popup')
+        logger.log('ℹ️ User closed the popup')
         setGoogleLoading(false)
         return
       }
 
       // If popup fails due to blocking, try redirect as fallback
       if (errorCode === "auth/popup-blocked" || errorCode === "auth/cancelled-popup-request" || errorCode === "auth/operation-not-supported-in-this-environment") {
-        console.log('⚠️ Popup blocked or not supported, falling back to redirect...')
+        logger.log('⚠️ Popup blocked or not supported, falling back to redirect...')
         try {
           await signInWithRedirect(auth, googleProvider)
           return
         } catch (redirectErr: any) {
-          console.error('❌ Redirect fallback failed:', redirectErr)
+          logger.error('❌ Redirect fallback failed:', redirectErr)
           setGoogleLoading(false)
         }
       } else {
@@ -212,23 +215,18 @@ export default function LoginPage() {
     setSendingReset(true)
     try {
       await sendPasswordResetEmail(auth, resetEmail)
-      // We don't have a toast hook here? 
-      // Checking file content: no toast import. 
-      // But maybe useSettings has toast? 
-      // Usually toast is from useToast. 
-      // Validating imports: no useToast.
-      // Let's rely on setFormError or alert for now or check if settings context provides toast.
-      // Actually audit said useToast is custom hook.
-      // I will assume for now I should just show a success message or form error if it fails?
-      // Wait, the plan said "toast". Let's import useToast.
-      // But I only added imports for Dialog. 
-      // Let me check if useToast is available in this file. 
-      // It is not. I should add it.
-      alert(t("resetEmailSent")) // Fallback since I didn't verify toast import
+      toast({
+        title: t("resetEmailSent"),
+        description: t("checkEmail")
+      })
       setResetDialogOpen(false)
       setResetEmail("")
     } catch (error) {
-      setFormError("Failed to send reset email")
+      toast({
+        title: t("error"),
+        description: t("failedToSendReset"),
+        variant: "destructive"
+      })
     } finally {
       setSendingReset(false)
     }

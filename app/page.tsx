@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { logger } from "@/lib/logger"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -187,7 +188,7 @@ export default function DashboardPage() {
           recompute()
         },
         (err) => {
-          console.error("Failed to fetch feed:", err)
+          logger.error("Failed to fetch feed:", err)
           perGroup[g.id] = []
           recompute()
         }
@@ -200,7 +201,9 @@ export default function DashboardPage() {
 
     return () => {
       feedUnsubs.forEach((u) => {
-        try { u() } catch { }
+        try { u() } catch (error) {
+          logger.error('Failed to unsubscribe from feed:', error)
+        }
       })
     }
   }, [groups, groupsLoading])
@@ -342,7 +345,7 @@ export default function DashboardPage() {
       // Navigate to groups list (or stay; snapshot will update)
       router.push("/groups")
     } catch (e: any) {
-      console.error("Failed to create group:", e)
+      logger.error("Failed to create group:", e)
       toast({
         title: t("createFailed"),
         description: e?.message || t("pleaseTryAgain"),
@@ -438,7 +441,7 @@ export default function DashboardPage() {
       setJoinCode("")
       router.push("/groups")
     } catch (e: any) {
-      console.error("Failed to join group:", e)
+      logger.error("Failed to join group:", e)
       toast({
         title: t("joinFailed"),
         description: e?.message || t("pleaseTryAgain"),

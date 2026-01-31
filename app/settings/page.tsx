@@ -1,9 +1,8 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import { logger } from "@/lib/logger"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -36,14 +35,6 @@ import {
   Wallet,
   Palette,
 } from "lucide-react"
-
-declare global {
-  interface Window {
-    FlutterBridge?: {
-      postMessage: (message: string) => void;
-    }
-  }
-}
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -103,9 +94,8 @@ export default function SettingsPage() {
     if (window.FlutterBridge) {
       window.FlutterBridge.postMessage(`PERMISSION_REQUEST:${type}`)
     } else {
-      console.warn('FlutterBridge not active')
-      // Fallback for web dev or if bridge is missing: just log it
-      console.log(`[Dev] Requesting permission: ${type}`)
+      logger.warn(t('flutterBridgeNotActive'))
+      logger.log(`[Dev] Requesting permission: ${type}`)
     }
   }
 
@@ -113,7 +103,7 @@ export default function SettingsPage() {
     const handlePermissionResult = (event: Event) => {
       const customEvent = event as CustomEvent<{ permission: string, granted: boolean, permanentlyDenied: boolean }>;
       const { permission, granted, permanentlyDenied } = customEvent.detail;
-      console.log(`Permission Result: ${permission} = ${granted}`);
+      logger.log(`Permission Result: ${permission} = ${granted}`);
 
       // Map native permission names to our state keys if necessary
       // Assuming native sends 'camera', 'photos', 'contacts', 'notifications'
