@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2, Wallet } from "lucide-react"
 import { auth, googleProvider } from "@/lib/firebase"
-import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail } from "firebase/auth"
+import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, signInWithCredential, GoogleAuthProvider } from "firebase/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useSettings } from "@/lib/settings-context"
 import { isMobileOrWebView, getEnvironmentInfo } from "@/lib/detect-mobile"
@@ -112,6 +112,29 @@ export default function LoginPage() {
     }
   }
 
+  // Handle native Google Login result
+  useEffect(() => {
+    window.onNativeGoogleLoginResult = async (idToken: string) => {
+      console.log('📱 Received Native Google Login Token');
+      setGoogleLoading(true);
+      try {
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+        console.log('✅ Native sign-in successful');
+        // Auth state listener will handle redirection
+      } catch (error: any) {
+        console.error('❌ Native sign-in error:', error);
+        setFormError(t("googleSignInFailed") + ` (${error?.message})`);
+        setGoogleLoading(false);
+      }
+    };
+
+    // Cleanup
+    return () => {
+      window.onNativeGoogleLoginResult = undefined;
+    };
+  }, [t]);
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true)
     setFormError(null)
@@ -123,6 +146,14 @@ export default function LoginPage() {
     console.log('🔐 Starting Google Sign-In...')
     console.log('🌍 Environment:', envInfo)
     console.log('📱 Is Mobile/WebView:', isMobile)
+
+    // Check for Flutter Bridge (Native Google Login)
+    if (typeof window !== 'undefined' && window.FlutterBridge) {
+      console.log('🌉 Flutter Bridge detected! Requesting native login...');
+      window.FlutterBridge.postMessage("NATIVE_GOOGLE_LOGIN");
+      // The process will continue in window.onNativeGoogleLoginResult
+      return;
+    }
 
     try {
       if (isMobile) {
