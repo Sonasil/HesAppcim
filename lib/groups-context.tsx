@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from "react"
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 
@@ -44,7 +44,7 @@ export function GroupsProvider({ children }: { children: ReactNode }) {
       if (unsubscribe) {
         try {
           unsubscribe()
-        } catch {}
+        } catch { }
         unsubscribe = undefined
       }
 
@@ -85,11 +85,11 @@ export function GroupsProvider({ children }: { children: ReactNode }) {
     return () => {
       try {
         unsubAuth()
-      } catch {}
+      } catch { }
       if (unsubscribe) {
         try {
           unsubscribe()
-        } catch {}
+        } catch { }
       }
     }
   }, [])
@@ -98,13 +98,14 @@ export function GroupsProvider({ children }: { children: ReactNode }) {
   const activeGroups = groups.filter((g) => g.isActive !== false)
   const archivedGroups = groups.filter((g) => g.isActive === false)
 
-  const value: GroupsContextValue = {
+  // Optimize context value
+  const value = useMemo<GroupsContextValue>(() => ({
     groups,
     activeGroups,
     archivedGroups,
     loading,
     error,
-  }
+  }), [groups, activeGroups, archivedGroups, loading, error])
 
   return <GroupsContext.Provider value={value}>{children}</GroupsContext.Provider>
 }

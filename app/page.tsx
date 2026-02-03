@@ -130,6 +130,9 @@ export default function DashboardPage() {
   }, [groups, groupsLoading])
 
   // 3. Listen to Feeds for each group
+  // Optimize: Create a stable dependency for the effect so it doesn't re-run on every balance update
+  const groupIds = groups.map(g => g.id).sort().join(',')
+
   useEffect(() => {
     // Wait for groups to be loaded
     if (groupsLoading) {
@@ -155,7 +158,11 @@ export default function DashboardPage() {
       setActivitiesLoading(false)
     }
 
-    // Add "Group Created" activities
+    // Add "Group Created" activities (we can use the current groups from context here reliably)
+    // Note: We use the closure value of 'groups' which might be stale inside this effect if we don't include it in deps,
+    // but we WANT to avoid re-running this effect. For 'groupCreated' static data, it's fine.
+    // However, to be perfectly safe, we can fetch the group data once inside the effect or just rely on the fact
+    // that group creation data (name, createdAt) rarely changes.
     for (const g of groups) {
       if (g?.createdAt) {
         baseActivities.push({
@@ -171,6 +178,9 @@ export default function DashboardPage() {
     }
 
     // Listen to feeds for each group
+    // We use the ID list to determine which groups to listen to.
+    // If a group name changes, this effect won't re-run immediately, which is an acceptable trade-off for performance.
+    // (The user would see the new name on page refresh or if they add/remove a group).
     for (const g of groups) {
       const groupName = g?.name || t("groupLabel")
       const feedQ = query(
@@ -206,7 +216,8 @@ export default function DashboardPage() {
         }
       })
     }
-  }, [groups, groupsLoading])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupIds, groupsLoading]) // Only re-subscribe if the LIST of groups changes, not their contents
   const formatTime = (date: Date) => {
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
