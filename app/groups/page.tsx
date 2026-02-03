@@ -385,55 +385,58 @@ export default function GroupsPage() {
                             </div>
                           </div>
                         </div>
-                        {group.yourBalance !== 0 && (
-                          <Badge
-                            variant={group.yourBalance >= 0 ? "default" : "secondary"}
-                            className={`shrink-0 ${group.yourBalance >= 0
-                              ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-950 dark:text-green-400"
-                              : "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950 dark:text-red-400"
-                              }`}
-                          >
-                            <div className="flex items-center gap-1">
-                              {group.yourBalance >= 0 ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              <span>
-                                {group.yourBalance >= 0 ? "+" : ""}
-                                {formatMoney(Math.abs(group.yourBalance))}
-                              </span>
-                            </div>
-                          </Badge>
-                        )}
-                      </div>
 
-                      {/* Dropdown Menu for Active Groups */}
-                      <div className="absolute top-2 right-2 z-10 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 hover:bg-background/80"
-                              onClick={(e) => e.stopPropagation()}
-                              onPointerDown={(e) => e.stopPropagation()}
+                        <div className="flex items-start gap-1">
+                          {group.yourBalance !== 0 && (
+                            <Badge
+                              variant={group.yourBalance >= 0 ? "default" : "secondary"}
+                              className={`shrink-0 ${group.yourBalance >= 0
+                                ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-950 dark:text-green-400"
+                                : "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950 dark:text-red-400"
+                                }`}
                             >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onSelect={(e) => {
-                                handleArchiveGroup(group, false)
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Archive className="mr-2 h-4 w-4" />
-                              {t("archiveGroup")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <div className="flex items-center gap-1">
+                                {group.yourBalance >= 0 ? (
+                                  <TrendingUp className="h-3 w-3" />
+                                ) : (
+                                  <TrendingDown className="h-3 w-3" />
+                                )}
+                                <span>
+                                  {group.yourBalance >= 0 ? "+" : ""}
+                                  {formatMoney(Math.abs(group.yourBalance))}
+                                </span>
+                              </div>
+                            </Badge>
+                          )}
+
+                          {/* Dropdown Menu for Active Groups */}
+                          <div className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-background/80"
+                                  onClick={(e) => e.stopPropagation()}
+                                  onPointerDown={(e) => e.stopPropagation()}
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onSelect={(e) => {
+                                    handleArchiveGroup(group, false)
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Archive className="mr-2 h-4 w-4" />
+                                  {t("archiveGroup")}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="border-t pt-2 sm:pt-3">
@@ -496,34 +499,34 @@ export default function GroupsPage() {
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Dropdown Menu for Archived Groups */}
-                      <div className="absolute top-2 right-2 z-10 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 hover:bg-background/80"
-                              onClick={(e) => e.stopPropagation()}
-                              onPointerDown={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onSelect={(e) => {
-                                handleArchiveGroup(group, true)
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <RefreshCw className="mr-2 h-4 w-4" />
-                              {t("unarchiveGroup")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {/* Dropdown Menu for Archived Groups */}
+                        <div className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-background/80"
+                                onClick={(e) => e.stopPropagation()}
+                                onPointerDown={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onSelect={(e) => {
+                                  handleArchiveGroup(group, true)
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                {t("unarchiveGroup")}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
 
                       <div className="border-t pt-2 sm:pt-3">

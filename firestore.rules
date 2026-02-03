@@ -9,8 +9,11 @@ service cloud.firestore {
     // ✅ FIXED: Allow authenticated users to read any user profile (for group member display)
     // Changed from: allow read, write: if signedIn() && request.auth.uid == uid;
     match /users/{uid} {
-      allow read: if signedIn();  // ✅ Anyone authenticated can read profiles
-      allow write: if signedIn() && request.auth.uid == uid;  // Only owner can write
+      // NOTE: Profiles must be readable by any authenticated user because
+      // group member lists need to fetch names/avatars of other users.
+      // Privacy is maintained by strictly restricting WRITE access to the owner.
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid;
     }
 
     // --------------------
