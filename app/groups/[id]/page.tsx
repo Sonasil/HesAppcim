@@ -28,7 +28,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu" // Added DropdownMenuSeparator, DropdownMenuLabel
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import {
@@ -179,6 +178,12 @@ export default function GroupDetailPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [autoScroll, setAutoScroll] = useState(true)
 
+  const [feedLimit, setFeedLimit] = useState(10)
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const prevScrollHeightRef = useRef<number>(0)
+  const isFirstLoadRef = useRef(true)
+
   const { groups: contextGroups, loading: groupsLoading } = useGroups()
   const group = useMemo(() => contextGroups.find(g => g.id === groupId), [contextGroups, groupId])
 
@@ -188,6 +193,7 @@ export default function GroupDetailPage() {
   const [messageText, setMessageText] = useState("")
   const [sending, setSending] = useState(false)
 
+  // ... (keeping other states)
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false)
   const [addingExpense, setAddingExpense] = useState(false)
   const addExpenseRequestIdRef = useRef<string | null>(null)
@@ -234,8 +240,15 @@ export default function GroupDetailPage() {
   useEffect(() => {
     if (!groupId) return
 
-    const q = query(collection(db, "groups", groupId, "feed"), orderBy("createdAt", "asc"))
+    const q = query(
+      collection(db, "groups", groupId, "feed"),
+      orderBy("createdAt", "desc"), // Newer first
+      limit(feedLimit)
+    )
     const unsub = onSnapshot(q, (snap) => {
+      // If we got fewer items than requested, we reached the end
+      setHasMore(snap.docs.length >= feedLimit)
+
       const items: FeedItem[] = snap.docs
         .map((d) => {
           const data = d.data() as any
@@ -262,6 +275,7 @@ export default function GroupDetailPage() {
           } as FeedItem
         })
         .filter((item) => item.type === "message" || item.type === "expense" || item.type === "settlement")
+        .reverse() // Reverse to show oldest -> newest (chronological)
 
       setFeedItems(items)
 
@@ -273,24 +287,51 @@ export default function GroupDetailPage() {
         }
       })
       setPaymentStatus(newPaymentStatus)
-
-      if (autoScroll) {
-        setTimeout(() => {
-          if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-          }
-        }, 100)
-      }
     })
 
     return () => unsub()
-  }, [groupId, autoScroll])
+  }, [groupId, feedLimit]) // Re-run when feedLimit changes
 
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  // ... (existing state)
+
+  // Scroll Management with useLayoutEffect to prevent flicker
   useEffect(() => {
-    if (autoScroll && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    // We use useEffect here because useLayoutEffect causes warnings with SSR
+    // validation is needed to ensure ref is current
+    if (!scrollRef.current) return
+
+    if (loadingHistory) {
+      // Restore scroll position after loading history
+      const newScrollHeight = scrollRef.current.scrollHeight
+      const diff = newScrollHeight - prevScrollHeightRef.current
+      if (diff > 0) {
+        scrollRef.current.scrollTop = diff
+      }
+      setLoadingHistory(false)
+    } else if (autoScroll || isFirstLoadRef.current) {
+      // Auto-scroll to bottom on new message or first load
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(() => {
+        // Use scrollIntoView for more reliable scrolling to bottom
+        if (bottomRef.current) {
+          bottomRef.current.scrollIntoView({ behavior: "auto" })
+        } else if (scrollRef.current) {
+          // Fallback to scrollTop
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+      }, 100)
+
+      if (isFirstLoadRef.current && feedItems.length > 0) {
+        // rapid updates might cause this to flip too early, but usually fine
+        // We set a small timeout to unset "First Load" to allow scroll event to settle
+        setTimeout(() => {
+          isFirstLoadRef.current = false
+        }, 500)
+      }
     }
-  }, [feedItems, autoScroll])
+  }, [feedItems, autoScroll, loadingHistory])
 
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault()
@@ -1475,16 +1516,28 @@ export default function GroupDetailPage() {
         </div>
       </header>
 
-      <ScrollArea
+      <div
         ref={scrollRef}
-        className="flex-1 p-3 sm:p-4"
+        className="flex-1 overflow-y-auto p-3 sm:p-4 scroll-smooth"
         onScroll={(e) => {
           const target = e.target as HTMLDivElement
           const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 50
           setAutoScroll(isAtBottom)
+
+          // Infinite Scroll Trigger (Top)
+          if (target.scrollTop < 20 && !loadingHistory && hasMore && !isFirstLoadRef.current) {
+            setLoadingHistory(true)
+            prevScrollHeightRef.current = target.scrollHeight
+            setFeedLimit((prev) => prev + 10)
+          }
         }}
       >
         <div className="mx-auto max-w-3xl space-y-3 sm:space-y-4">
+          {loadingHistory && (
+            <div className="flex justify-center py-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            </div>
+          )}
           {feedItems.length === 0 ? (
             <div className="flex h-64 items-center justify-center">
               <p className="text-muted-foreground">{t("noActivityYet")}</p>
@@ -1577,8 +1630,9 @@ export default function GroupDetailPage() {
               }
             })
           )}
+          <div ref={bottomRef} />
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="sticky bottom-0 border-t bg-card p-3 sm:p-4 z-10">
         <form onSubmit={handleSendMessage} className="mx-auto max-w-3xl">
