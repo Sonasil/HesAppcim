@@ -11,7 +11,7 @@ import { auth, googleProvider } from "@/lib/firebase"
 import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, signInWithCredential, GoogleAuthProvider } from "firebase/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useSettings } from "@/lib/settings-context"
-import { isMobileOrWebView, getEnvironmentInfo } from "@/lib/detect-mobile"
+import { isMobileOrWebView, getEnvironmentInfo, isWebView } from "@/lib/detect-mobile"
 import { logger } from "@/lib/logger"
 import { useToast } from "@/hooks/use-toast"
 
@@ -142,13 +142,9 @@ export default function LoginPage() {
     setGoogleLoading(true)
     setFormError(null)
 
-    // Detect environment
-    const isMobile = isMobileOrWebView()
     const envInfo = getEnvironmentInfo()
-
     logger.log('🔐 Starting Google Sign-In...')
     logger.log('🌍 Environment:', envInfo)
-    logger.log('📱 Is Mobile/WebView:', isMobile)
 
     // Check for Flutter Bridge (Native Google Login)
     if (typeof window !== 'undefined' && window.FlutterBridge) {
@@ -159,49 +155,62 @@ export default function LoginPage() {
     }
 
     try {
-      if (isMobile) {
-        // Mobile/WebView: Use redirect flow directly
-        logger.log('📱 Using signInWithRedirect for mobile/WebView')
-        await signInWithRedirect(auth, googleProvider)
-        // Redirect will happen, page will reload
-        // getRedirectResult will handle the response on return
-        return
-      } else {
-        // Desktop: Use popup flow
-        logger.log('🖥️ Using signInWithPopup for desktop')
+      // STRATEGY: Always try popup first (works best in all browser scenarios)
+      // Only use redirect as fallback when popup is actually blocked
+
+      logger.log('🔐 Attempting popup authentication...')
+
+      try {
         await signInWithPopup(auth, googleProvider)
         logger.log('✅ Popup sign-in successful')
         // Auth state listener will handle redirection
+        return
+      } catch (popupError: any) {
+        const errorCode = popupError?.code
+
+        logger.log('⚠️ Popup attempt failed:', errorCode)
+
+        // User closed popup - just stop loading
+        if (errorCode === "auth/popup-closed-by-user") {
+          logger.log('ℹ️ User closed the popup')
+          setGoogleLoading(false)
+          return
+        }
+
+        // Popup blocked or not supported - fall back to redirect
+        if (errorCode === "auth/popup-blocked" ||
+          errorCode === "auth/cancelled-popup-request" ||
+          errorCode === "auth/operation-not-supported-in-this-environment") {
+          logger.log('🔄 Popup blocked, falling back to redirect flow...')
+          await signInWithRedirect(auth, googleProvider)
+          // Redirect will happen, page will reload
+          // getRedirectResult will handle the response on return
+          return
+        }
+
+        // Other popup errors - rethrow to outer catch
+        throw popupError
       }
     } catch (err: any) {
       logger.error('❌ Google sign-in error:', err)
       logger.error('Error code:', err?.code)
       logger.error('Error message:', err?.message)
 
+      setGoogleLoading(false)
+
+      // Provide more helpful error messages
       const errorCode = err?.code
+      let errorMessage = t("googleSignInFailed")
 
-      // User cancelled the popup
-      if (errorCode === "auth/popup-closed-by-user") {
-        logger.log('ℹ️ User closed the popup')
-        setGoogleLoading(false)
-        return
+      if (errorCode === "auth/unauthorized-domain") {
+        errorMessage = "Domain not authorized. Please contact admin."
+      } else if (errorCode === "auth/operation-not-allowed") {
+        errorMessage = "Google sign-in is not enabled."
+      } else if (err?.message) {
+        errorMessage = `${t("googleSignInFailed")} (${errorCode || err.message})`
       }
 
-      // If popup fails due to blocking, try redirect as fallback
-      if (errorCode === "auth/popup-blocked" || errorCode === "auth/cancelled-popup-request" || errorCode === "auth/operation-not-supported-in-this-environment") {
-        logger.log('⚠️ Popup blocked or not supported, falling back to redirect...')
-        try {
-          await signInWithRedirect(auth, googleProvider)
-          return
-        } catch (redirectErr: any) {
-          logger.error('❌ Redirect fallback failed:', redirectErr)
-          setGoogleLoading(false)
-        }
-      } else {
-        setGoogleLoading(false)
-      }
-
-      setFormError(t("googleSignInFailed"))
+      setFormError(errorMessage)
     }
   }
 

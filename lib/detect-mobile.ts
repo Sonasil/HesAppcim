@@ -6,26 +6,18 @@
  */
 
 /**
- * Checks if the current environment is likely a mobile device or WebView
+ * Checks if the current environment is a WebView
  * 
- * This function detects:
- * - Mobile browsers (iOS Safari, Android Chrome, etc.)
- * - WebView environments (Flutter WebView, Android WebView, iOS WKWebView)
- * - In-app browsers (Instagram, Facebook, LinkedIn, etc.)
+ * WebView environments MUST use redirect flow for OAuth
  * 
- * @returns true if mobile/WebView is detected, false otherwise
+ * @returns true if WebView is detected, false otherwise
  */
-export function isMobileOrWebView(): boolean {
-    // Server-side rendering check
+export function isWebView(): boolean {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-        console.log('🔍 SSR environment detected')
         return false
     }
 
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || ''
-
-    // Debug log
-    console.log('🔍 User Agent:', userAgent)
 
     // Check for Flutter WebView
     if (userAgent.includes('Flutter')) {
@@ -51,21 +43,62 @@ export function isMobileOrWebView(): boolean {
         return true
     }
 
-    // Check for mobile devices
+    return false
+}
+
+/**
+ * Checks if the current environment is likely a mobile device or WebView
+ * 
+ * This function detects:
+ * - Mobile browsers (iOS Safari, Android Chrome, etc.)
+ * - WebView environments (Flutter WebView, Android WebView, iOS WKWebView)
+ * - In-app browsers (Instagram, Facebook, LinkedIn, etc.)
+ * 
+ * IMPORTANT: Uses touch capability detection to avoid false positives
+ * in desktop browser responsive/mobile mode (DevTools)
+ * 
+ * @returns true if mobile/WebView is detected, false otherwise
+ */
+export function isMobileOrWebView(): boolean {
+    // Server-side rendering check
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        console.log('🔍 SSR environment detected')
+        return false
+    }
+
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || ''
+
+    // Debug log
+    console.log('🔍 User Agent:', userAgent)
+
+    // Check for WebView first (these MUST use redirect)
+    if (isWebView()) {
+        return true
+    }
+
+    // Check for touch capability (more reliable than screen size)
+    const isTouchDevice = (
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        (navigator as any).msMaxTouchPoints > 0
+    )
+
+    // Check for mobile user agent
     const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
 
-    if (mobileCheck) {
-        console.log('📱 Mobile device detected')
+    // Only return true if BOTH mobile UA and touch capability present
+    // This prevents DevTools responsive mode from being detected as mobile
+    if (mobileCheck && isTouchDevice) {
+        console.log('📱 Real mobile device detected (UA + Touch)')
         return true
     }
 
-    // Check for small screen sizes (mobile-like)
-    if (window.innerWidth <= 768) {
-        console.log('📱 Small screen detected (width <= 768px)')
-        return true
+    if (mobileCheck && !isTouchDevice) {
+        console.log('🖥️ Desktop browser in responsive mode (UA but no touch)')
+    } else if (!mobileCheck) {
+        console.log('🖥️ Desktop environment detected')
     }
 
-    console.log('🖥️ Desktop environment detected')
     return false
 }
 
