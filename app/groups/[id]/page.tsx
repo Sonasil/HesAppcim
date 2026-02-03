@@ -204,7 +204,82 @@ export default function GroupDetailPage() {
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([])
   const [splitMode, setSplitMode] = useState<"equal" | "custom">("equal")
   const [customSplitAmounts, setCustomSplitAmounts] = useState<Record<string, string>>({})
+  const [manualSplitParticipants, setManualSplitParticipants] = useState<string[]>([])
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
+
+  // Smart Split Logic
+  const handleCustomSplitChange = (uid: string, value: string) => {
+    // 1. Mark this user as manually edited (locked)
+    const newManuals = manualSplitParticipants.includes(uid)
+      ? manualSplitParticipants
+      : [...manualSplitParticipants, uid]
+    setManualSplitParticipants(newManuals)
+
+    // 2. Parse total amount and new value
+    const totalAmount = parseFloat(expenseAmount) || 0
+    const newValue = parseFloat(value) || 0
+    const newAmounts = { ...customSplitAmounts, [uid]: value }
+
+    // 3. Identify locked vs floating participants
+    // Note: The CURRENT user is now locked.
+    // Floating users are those NOT in newManuals (excluding current uid which we just added)
+    // BUT we need to be careful: if EVERYONE is locked, we can't auto-adjust.
+
+    const floatingParticipants = selectedParticipants.filter(id => !newManuals.includes(id))
+
+    if (floatingParticipants.length === 0) {
+      // All locked, just update the value (validation will happen at submit)
+      setCustomSplitAmounts(newAmounts)
+      return
+    }
+
+    // 4. Calculate remaining amount to distribute
+    // Sum of ALL locked participants (including the one being edited)
+    let lockedSum = 0
+    newManuals.forEach(id => {
+      const val = id === uid ? newValue : (parseFloat(newAmounts[id]) || 0)
+      lockedSum += val
+    })
+
+    const remaining = totalAmount - lockedSum
+
+    if (remaining < 0) {
+      // Allow negative for now? User will see total mismatch.
+      // Ideally we don't block input, just calculation.
+    }
+
+    // 5. Distribute remaining evenly among floating participants
+    const share = Math.max(0, remaining / floatingParticipants.length) // Prevent negative shares for simplicity? Or allowed?
+    // Let's allow negative temporarily or clamp to 0? 
+    // Requirement says "autofill". Usually autofill shouldn't go negative unless math forces it.
+    // Let's do precise math (cents) to avoid floating point errors
+
+    const remainingCents = Math.round((totalAmount * 100) - (lockedSum * 100))
+    const floatingCount = floatingParticipants.length
+
+    if (floatingCount > 0) {
+      const baseShareCents = Math.floor(remainingCents / floatingCount)
+      let remainderCents = remainingCents - (baseShareCents * floatingCount)
+
+      floatingParticipants.forEach(id => {
+        let userShareCents = baseShareCents
+        if (remainderCents > 0) {
+          userShareCents += 1
+          remainderCents -= 1
+        }
+        // If remaining was negative, logic still mostly holds (floor of negative)
+        // Check sign: if remainingCents is negative, baseShareCents is negative.
+        // Remainder logic might need adjustment for negatives, but for "remaining amount" context
+        // usually we just want to fill the gap.
+
+        // Simple decimal approach might be robust enough for input fields
+        const finalVal = (userShareCents / 100).toFixed(2)
+        newAmounts[id] = finalVal
+      })
+    }
+
+    setCustomSplitAmounts(newAmounts)
+  }
 
   const [memberDialogOpen, setMemberDialogOpen] = useState(false)
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
@@ -1746,6 +1821,7 @@ export default function GroupDetailPage() {
 
                               if (splitMode === "custom") {
                                 setCustomSplitAmounts({})
+                                setManualSplitParticipants([])
                               }
 
                               return newParticipants
@@ -1778,7 +1854,31 @@ export default function GroupDetailPage() {
                           type="button"
                           size="sm"
                           variant={splitMode === "custom" ? "default" : "outline"}
-                          onClick={() => setSplitMode("custom")}
+                          onClick={() => {
+                            setSplitMode("custom")
+                            setManualSplitParticipants([])
+                            // Initialize with equal split for better UX
+                            const total = parseFloat(expenseAmount) || 0
+                            const count = selectedParticipants.length
+                            if (count > 0 && total > 0) {
+                              const totalCents = Math.round(total * 100)
+                              const perPerson = Math.floor(totalCents / count)
+                              let extra = totalCents - (perPerson * count)
+
+                              const initialAmounts: Record<string, string> = {}
+                              selectedParticipants.forEach(uid => {
+                                let share = perPerson
+                                if (extra > 0) {
+                                  share++
+                                  extra--
+                                }
+                                initialAmounts[uid] = (share / 100).toFixed(2)
+                              })
+                              setCustomSplitAmounts(initialAmounts)
+                            } else {
+                              setCustomSplitAmounts({})
+                            }
+                          }}
                           className="flex-1"
                         >
                           Custom Split
@@ -1788,7 +1888,7 @@ export default function GroupDetailPage() {
                       {splitMode === "custom" && (
                         <div className="mt-4 space-y-3">
                           <p className="text-sm text-muted-foreground">
-                            Enter custom amounts for each person (must sum to total)
+                            Enter custom amounts for each person (others usually adjust)
                           </p>
                           {selectedParticipants.map((uid) => (
                             <div key={uid} className="space-y-1">
@@ -1801,12 +1901,7 @@ export default function GroupDetailPage() {
                                     step="0.01"
                                     placeholder="0.00"
                                     value={customSplitAmounts[uid] || ""}
-                                    onChange={(e) => {
-                                      setCustomSplitAmounts((prev) => ({
-                                        ...prev,
-                                        [uid]: e.target.value,
-                                      }))
-                                    }}
+                                    onChange={(e) => handleCustomSplitChange(uid, e.target.value)}
                                     className={`w-28 ${customSplitAmounts[uid] && parseFloat(customSplitAmounts[uid]) > MAX_AMOUNT ? "border-red-500 focus-visible:border-red-500" : ""}`}
                                   />
                                 </div>
